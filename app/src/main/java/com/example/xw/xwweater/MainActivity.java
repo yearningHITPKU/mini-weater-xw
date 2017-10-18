@@ -33,7 +33,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
     private ImageView mUpdateBtn;
     private ImageView mCitySelect;
-    private String lastCityCode;//最近一次显示的城市的代号
+    private String lastCityCode;//最近一次显示的城市的代号，使得启动应用显示上次退出之前的画面
 
     private TextView cityTv, timeTv, humidityTv, weekTv, pmDataTv, pmQualityTv,temperatureTv, climateTv, windTv, city_name_Tv;
     private ImageView weatherImg, pmImg;
