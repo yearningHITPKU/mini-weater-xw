@@ -315,7 +315,6 @@ public class MainActivity extends Activity implements View.OnClickListener{
                 Log.d("myWeather", "网络挂了");
                 Toast.makeText(MainActivity.this, "网络挂了！", Toast.LENGTH_LONG).show();
             }
-
         }
     }
 
