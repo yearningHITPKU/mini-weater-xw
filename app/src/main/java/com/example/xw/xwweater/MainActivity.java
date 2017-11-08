@@ -37,6 +37,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
     private TextView cityTv, timeTv, humidityTv, weekTv, pmDataTv, pmQualityTv,temperatureTv, climateTv, windTv, city_name_Tv;
     private ImageView weatherImg, pmImg;
+    private String lastPM25;
 
     private Handler mHandler = new Handler() {
         public void handleMessage(android.os.Message msg) {
@@ -104,7 +105,8 @@ public class MainActivity extends Activity implements View.OnClickListener{
             cityTv.setText(sharedPreferences.getString("cityTv","N/A"));
             timeTv.setText(sharedPreferences.getString("timeTv","N/A"));
             humidityTv.setText(sharedPreferences.getString("humidityTv","N/A"));
-            pmDataTv.setText(sharedPreferences.getString("pmDataTv","N/A"));
+            lastPM25 = sharedPreferences.getString("pmDataTv","N/A");
+            pmDataTv.setText(lastPM25);
             pmQualityTv.setText(sharedPreferences.getString("pmQualityTv","N/A"));
             weekTv.setText(sharedPreferences.getString("weekTv","N/A"));
             temperatureTv.setText(sharedPreferences.getString("temperatureTv","N/A"));
@@ -163,15 +165,19 @@ public class MainActivity extends Activity implements View.OnClickListener{
         cityTv.setText(todayWeather.getCity());
         timeTv.setText(todayWeather.getUpdatetime()+ "发布");
         humidityTv.setText("湿度："+todayWeather.getShidu());
-        pmDataTv.setText(todayWeather.getPm25());
-        pmQualityTv.setText(todayWeather.getQuality());
+        if(todayWeather.getPm25() != null){
+            pmDataTv.setText(todayWeather.getPm25());
+            pmQualityTv.setText(todayWeather.getQuality());
+        }
         weekTv.setText(todayWeather.getDate());
         temperatureTv.setText(todayWeather.getHigh()+"~"+todayWeather.getLow());
         climateTv.setText(todayWeather.getType());
         windTv.setText("风力:"+todayWeather.getFengli());
-        int pm25Value = Integer.parseInt(todayWeather.getPm25());
-        updateImage(pm25Value,todayWeather.getType());
-
+        int pm25Value = 0;
+        if(todayWeather.getPm25()!=null){
+            pm25Value = Integer.parseInt(todayWeather.getPm25());
+            updateImage(pm25Value,todayWeather.getType());
+        }
         Toast.makeText(MainActivity.this,"更新成功！",Toast.LENGTH_SHORT).show();
 
         SharedPreferences settings  = (SharedPreferences)getSharedPreferences("XW", MODE_PRIVATE);

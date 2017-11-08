@@ -15,7 +15,7 @@ import java.util.List;
 
 public class CityDB {
     public static final String CITY_DB_NAME = "city.db";//数据库名称
-    private static final String CITY_TABLE_NAME = "city";//一个表
+    private static final String CITY_TABLE_NAME = "city";//表名称
     private SQLiteDatabase db;
 
     public CityDB(Context context, String path) {

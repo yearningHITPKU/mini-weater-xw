@@ -5,9 +5,9 @@ package com.example.xw.bean;
  */
 
 public class City {
-    private String province;
-    private String city;
-    private String number;
+    private String province;//省份
+    private String city;//城市
+    private String number;//编号
     private String firstPY;
     private String allPY;
     private String allFirstPY;

@@ -21,9 +21,9 @@ import java.util.List;
 public class MyApplication extends Application{
     private static final String TAG = "MyAPP";
 
-    private static MyApplication myApplication;
-    private CityDB mCityDB;
-    private List<City> mCityList;
+    private static MyApplication myApplication;//单例入口
+    private CityDB mCityDB;//全局数据库
+    private List<City> mCityList;//所有城市列表
 
     @Override
     public void onCreate(){
@@ -32,6 +32,10 @@ public class MyApplication extends Application{
         myApplication = this;
         mCityDB = openCityDB();
         initCityList();
+    }
+
+    public static MyApplication getInstance(){
+        return myApplication;
     }
 
     private void initCityList(){
@@ -57,15 +61,7 @@ public class MyApplication extends Application{
         Log.d(TAG,"i="+i);
         return true;
     }
-
-    public List<City> getCityList() {
-        return mCityList;
-    }
-
-    public static MyApplication getInstance(){
-        return myApplication;
-    }
-
+    
     public CityDB openCityDB(){
         String path = "/data"
                 + Environment.getDataDirectory().getAbsolutePath()
@@ -103,5 +99,9 @@ public class MyApplication extends Application{
             }
         }
         return new CityDB(this, path);
+    }
+
+    public List<City> getCityList() {
+        return mCityList;
     }
 }
