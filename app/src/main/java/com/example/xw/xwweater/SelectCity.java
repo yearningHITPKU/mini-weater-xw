@@ -80,6 +80,7 @@ public class SelectCity extends Activity implements View.OnClickListener{
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Toast.makeText(SelectCity.this, "你单击了:"+i, Toast.LENGTH_SHORT).show();
                 //citycode = cityList.get(i).getNumber();
+                // 从适配器获取被点击的条目，可以获得被点击条目的内容
                 String cityAndcode = adapter.getItem(i);
                 citycode = cityAndcode.substring(cityAndcode.length()-9,cityAndcode.length());
                 Intent intent = new Intent();
