@@ -3,9 +3,12 @@ package com.example.xw.xwweater;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -21,6 +24,8 @@ public class SelectCity extends Activity implements View.OnClickListener{
     private ListView mListView;
     private List<City> cityList;
     private String citycode;
+    private EditText searchEdit;
+    private ArrayAdapter<String> adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +36,7 @@ public class SelectCity extends Activity implements View.OnClickListener{
         backBtn.setOnClickListener(this);
 
         mListView = (ListView)findViewById(R.id.list_city);
+        searchEdit = (EditText) findViewById(R.id.search_edit);
 
         initViews();
     }
@@ -51,15 +57,31 @@ public class SelectCity extends Activity implements View.OnClickListener{
             i++;
         }
         // 设置适配器：关联数据与布局
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(SelectCity.this, android.R.layout.simple_list_item_1, data);
+        adapter = new ArrayAdapter<String>(SelectCity.this, android.R.layout.simple_list_item_1, data);
         mListView.setAdapter(adapter);
+        searchEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                adapter.getFilter().filter(s);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
 
         // 设置ListView条目点击事件
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Toast.makeText(SelectCity.this, "你单击了:"+i, Toast.LENGTH_SHORT).show();
-                citycode = cityList.get(i).getNumber();
+                //citycode = cityList.get(i).getNumber();
+                String cityAndcode = adapter.getItem(i);
+                citycode = cityAndcode.substring(cityAndcode.length()-9,cityAndcode.length());
                 Intent intent = new Intent();
                 intent.putExtra("cityCode", citycode);
                 setResult(RESULT_OK, intent);

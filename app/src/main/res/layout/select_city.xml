@@ -40,7 +40,7 @@
         android:id="@+id/search_edit"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:hint="搜索全国城市（中⽂文）"
+        android:hint="搜索全国城市(名称或代号)"
         android:layout_margin="10.0dip"
         android:drawableLeft="@drawable/magnifying_glass"
         android:drawablePadding="8.0dip"
@@ -59,17 +59,4 @@
         android:layout_height="match_parent"
         android:background="#000000">
     </ListView>
-    <com.example.xw.ClearEditText
-        android:id="@+id/search_city"
-        android:layout_height="wrap_content"
-        android:layout_width="fill_parent"
-        android:layout_margin="4.0dip"
-        android:hint="搜索全国城市（中文）"
-        android:drawableLeft="@drawable/magnifying_glass"
-        android:drawablePadding="6.0dp"
-        android:singleLine="true"
-        android:background="@drawable/contact_search_box_edittext_keyword_background"
-        android:textColor="#ff000000"
-        android:textColorHint="#ffcccccc"
-        android:textSize="15.0dp"/>
 </LinearLayout>

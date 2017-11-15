@@ -339,7 +339,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
             if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
                 Log.d("myWeather", "网络OK");
-                queryWeatherCode(newCityCode);// 更新界面显示
+                queryWeatherCode(lastCityCode);// 更新界面显示
             } else {
                 Log.d("myWeather", "网络挂了");
                 Toast.makeText(MainActivity.this, "网络挂了！", Toast.LENGTH_LONG).show();
