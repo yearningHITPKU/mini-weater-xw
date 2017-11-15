@@ -4,6 +4,7 @@ package com.example.xw.bean;
  * Created by xw on 2017/10/12.
  */
 
+// 今日天气类，包含某个城市当天的天气信息
 public class TodayWeather {
     private String city;
     private String updatetime;

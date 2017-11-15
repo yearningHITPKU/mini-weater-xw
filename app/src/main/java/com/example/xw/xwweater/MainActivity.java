@@ -9,6 +9,7 @@ import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,19 +32,21 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
     private static final int UPDATE_TODAY_WEATHER = 1;
 
+    // 布局文件中的控件
     private ImageView mUpdateBtn;
+    private ProgressBar mProgressAnim;
     private ImageView mCitySelect;
     private String lastCityCode;//最近一次显示的城市的代号，使得启动应用显示上次退出之前的画面
-
     private TextView cityTv, timeTv, humidityTv, weekTv, pmDataTv, pmQualityTv,temperatureTv, climateTv, windTv, city_name_Tv;
     private ImageView weatherImg, pmImg;
     private String lastPM25;
 
+    // 该函数用于处理子线程发送的msg消息
     private Handler mHandler = new Handler() {
         public void handleMessage(android.os.Message msg) {
             switch (msg.what) {
                 case UPDATE_TODAY_WEATHER:
-                    updateTodayWeather((TodayWeather) msg.obj);
+                    updateTodayWeather((TodayWeather) msg.obj);//根据子线程发回来的天气信息，更新当前界面的显示
                     break;
                 default:
                     break;
@@ -58,7 +61,9 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
         mUpdateBtn = (ImageView)findViewById(R.id.title_update_btn);
         mUpdateBtn.setOnClickListener(this);
+        mProgressAnim = (ProgressBar)findViewById(R.id.title_update_progress);
 
+        // 测试网络是否联通
         if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
             Log.d("myWeather", "网络OK");
             Toast.makeText(MainActivity.this,"网络OK！", Toast.LENGTH_LONG).show();
@@ -68,11 +73,12 @@ public class MainActivity extends Activity implements View.OnClickListener{
         }
 
         mCitySelect = (ImageView) findViewById(R.id.title_city_manager);
-        mCitySelect.setOnClickListener(this);
+        mCitySelect.setOnClickListener(this);//添加点击事件
 
         initView();
     }
 
+    // 初始化程序启动界面
     void initView(){
         city_name_Tv = (TextView) findViewById(R.id.title_city_name);
         cityTv = (TextView) findViewById(R.id.city);
@@ -87,8 +93,11 @@ public class MainActivity extends Activity implements View.OnClickListener{
         weatherImg = (ImageView) findViewById(R.id.weather_img);
         pmImg = (ImageView) findViewById(R.id.pm2_5_img);
 
+        // 获取SharedPreferences中的内容
         SharedPreferences sharedPreferences = getSharedPreferences("XW",MODE_PRIVATE);
+        // 存储最近搜索过的城市代号
         lastCityCode = sharedPreferences.getString("main_city_code","101010100");
+        // 如果sharedPreferences中没有内容，则初始化为N/A
         if(sharedPreferences == null){
             city_name_Tv.setText("N/A");
             cityTv.setText("N/A");
@@ -100,7 +109,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
             temperatureTv.setText("N/A");
             climateTv.setText("N/A");
             windTv.setText("N/A");
-        }else{
+        }else{// sharedPreference中有内容，则按其中的内容对启动界面进行初始化
             city_name_Tv.setText(sharedPreferences.getString("city_name_Tv","N/A"));
             cityTv.setText(sharedPreferences.getString("cityTv","N/A"));
             timeTv.setText(sharedPreferences.getString("timeTv","N/A"));
@@ -117,6 +126,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
     }
 
+    // 根据城市代号，在子线程中获取天气信息
     private void queryWeatherCode(String cityCode){
         final String address = "http://wthrcdn.etouch.cn/WeatherApi?citykey="+cityCode;
         Log.d("myWeather",address);
@@ -141,10 +151,11 @@ public class MainActivity extends Activity implements View.OnClickListener{
                     }
                     String responseStr = response.toString();
                     Log.d("myWeather", responseStr);
-                    todayWeather = parseXML(responseStr);
+                    todayWeather = parseXML(responseStr);// 解析获得的xml格式的网页数据
                     if(todayWeather != null){
                         Log.d("myWeather",todayWeather.toString());
 
+                        // 将解析后得到的天气信息对象传回UI线程处理
                         Message msg = new Message();
                         msg.what = UPDATE_TODAY_WEATHER;
                         msg.obj=todayWeather;
@@ -160,6 +171,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         }).start();
     }
 
+    // 根据查询到的天气信息，更新界面显示的数据
     void updateTodayWeather(TodayWeather todayWeather){
         city_name_Tv.setText(todayWeather.getCity()+"天气");
         cityTv.setText(todayWeather.getCity());
@@ -179,7 +191,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
             updateImage(pm25Value,todayWeather.getType());
         }
         Toast.makeText(MainActivity.this,"更新成功！",Toast.LENGTH_SHORT).show();
+        mUpdateBtn.setVisibility(View.VISIBLE);
+        mProgressAnim.setVisibility(View.INVISIBLE);
 
+        // 将本次查询得到的数据存入SharedPreferences，方便下次初始化时使用
         SharedPreferences settings  = (SharedPreferences)getSharedPreferences("XW", MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("city_name_Tv",city_name_Tv.getText().toString());
@@ -195,9 +210,10 @@ public class MainActivity extends Activity implements View.OnClickListener{
         editor.putString("main_city_code",lastCityCode);
         editor.putInt("pm25",pm25Value);
         editor.putString("type",todayWeather.getType());
-        editor.commit();
+        editor.commit();//提交操作，很关键
     }
 
+    // 解析从网站上获取到的xml页面信息
     private TodayWeather parseXML(String xmldata){
         TodayWeather todayWeather = null;
         int fengxiangCount=0;
@@ -270,7 +286,6 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
                         break;
 
-
                     // 判断当前事件是否为标签元素结束事件
                     case XmlPullParser.END_TAG:
                         break;
@@ -286,21 +301,27 @@ public class MainActivity extends Activity implements View.OnClickListener{
         return todayWeather;
     }
 
+    // 控件的点击事件处理函数
     public void onClick(View view){
 
+        // 如果点击的是选择城市按钮，则跳转到城市选择界面
         if(view.getId()==R.id.title_city_manager){
             Intent i = new Intent(this, SelectCity.class);
-            startActivityForResult(i,1);
+            startActivityForResult(i,1);// 等待跳转到的界面返回结果
         }
 
+        // 如果点击更新按钮，则根据SharedPreferences中存储的城市代号，查询天气信息并更新显示
         if(view.getId()==R.id.title_update_btn){
             SharedPreferences sharedPreferences = getSharedPreferences("XW", MODE_PRIVATE);
             String citymode = sharedPreferences.getString("main_city_code", "101010100");//101160101
             Log.d("myWeather",citymode);
 
+            mUpdateBtn.setVisibility(View.INVISIBLE);
+            mProgressAnim.setVisibility(View.VISIBLE);
+
             if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
                 Log.d("myWeather", "网络OK");
-                queryWeatherCode(citymode);
+                queryWeatherCode(citymode);// 根据城市代号查询天气，并更新显示
             }else {
                 Log.d("myWeather", "网络挂了");
                 Toast.makeText(MainActivity.this,"网络挂了！", Toast.LENGTH_LONG).show();
@@ -308,15 +329,17 @@ public class MainActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    // 处理SelectCity返回的结果（选中的城市代号）
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1 && resultCode == RESULT_OK) {
             String newCityCode = data.getStringExtra("cityCode");
-            lastCityCode = newCityCode;
+            if(newCityCode != null)
+                lastCityCode = newCityCode;// 记录最近查询的城市代号
             Log.d("myWeather", "选择的城市代码为"+newCityCode);
 
             if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
                 Log.d("myWeather", "网络OK");
-                queryWeatherCode(newCityCode);
+                queryWeatherCode(newCityCode);// 更新界面显示
             } else {
                 Log.d("myWeather", "网络挂了");
                 Toast.makeText(MainActivity.this, "网络挂了！", Toast.LENGTH_LONG).show();
@@ -324,6 +347,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         }
     }
 
+    // 根据pm2.5的值和天气，显示对应的图片
     void updateImage(int pm25Value, String weatherStr){
         if(pm25Value >= 0 && pm25Value <= 50){
             pmImg.setImageResource(R.drawable.biz_plugin_weather_0_50);

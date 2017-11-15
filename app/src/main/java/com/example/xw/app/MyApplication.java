@@ -18,6 +18,7 @@ import java.util.List;
  * Created by xw on 2017/11/1.
  */
 
+// 应用程序类，一个APP中只有一个，单例模式
 public class MyApplication extends Application{
     private static final String TAG = "MyAPP";
 
@@ -30,14 +31,16 @@ public class MyApplication extends Application{
         super.onCreate();
         Log.d( TAG, "MyApplication->OnCreate");
         myApplication = this;
-        mCityDB = openCityDB();
-        initCityList();
+        mCityDB = openCityDB();// 初始化APP的数据库
+        initCityList();// 初始化城市列表
     }
 
+    // 中能通过此方法获取该单例类的对象
     public static MyApplication getInstance(){
         return myApplication;
     }
 
+    // 在子线程中查询数据库，初始化城市列表信息
     private void initCityList(){
         mCityList = new ArrayList<City>();
         new Thread(new Runnable() {
@@ -49,7 +52,9 @@ public class MyApplication extends Application{
         }).start();
     }
 
+    // 初始化城市列表信息
     private boolean prepareCityList() {
+        // 获得数据库中的数据
         mCityList = mCityDB.getAllCity();
         int i=0;
         for (City city : mCityList) {
@@ -61,7 +66,8 @@ public class MyApplication extends Application{
         Log.d(TAG,"i="+i);
         return true;
     }
-    
+
+    // 打开数据库
     public CityDB openCityDB(){
         String path = "/data"
                 + Environment.getDataDirectory().getAbsolutePath()
@@ -71,7 +77,9 @@ public class MyApplication extends Application{
                 + CityDB.CITY_DB_NAME;
         File db = new File(path);
         Log.d(TAG,path);
+        // 如果数据库文件不存在，先将文件拷贝到指定路径中
         if(!db.exists()){
+            // 数据文件路径
             String pathfolder = "/data" + Environment.getDataDirectory().getAbsolutePath()
                     + File.separator + getPackageName()
                     + File.separator + "databases1"

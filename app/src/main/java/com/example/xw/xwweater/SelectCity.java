@@ -40,6 +40,7 @@ public class SelectCity extends Activity implements View.OnClickListener{
         MyApplication myApplication = (MyApplication)getApplication();
         cityList = myApplication.getCityList();
 
+        // 构造ListView中需要显示的信息的数组
         String[] data = new String[cityList.size()];
         int i = 0;
         for(City city : cityList){
@@ -62,17 +63,18 @@ public class SelectCity extends Activity implements View.OnClickListener{
                 Intent intent = new Intent();
                 intent.putExtra("cityCode", citycode);
                 setResult(RESULT_OK, intent);
-                finish();
+                finish();// 跳转到主界面，并返回选中的条目对应的城市代号
             }
         });
     }
 
+    // 处理各个控件的点击事件
     public void onClick(View view){
         if(view.getId()==R.id.title_back){
             Intent i = new Intent();
             i.putExtra("cityCode", citycode);
             setResult(RESULT_OK, i);
-            finish();
+            finish();// 返回上一个界面，并将citycode返回
         }
     }
 }

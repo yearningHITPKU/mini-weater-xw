@@ -4,6 +4,7 @@ package com.example.xw.bean;
  * Created by xw on 2017/11/1.
  */
 
+// 城市类：包括一个城市的信息
 public class City {
     private String province;//省份
     private String city;//城市
