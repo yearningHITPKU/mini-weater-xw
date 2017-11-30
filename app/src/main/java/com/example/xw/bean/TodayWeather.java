@@ -5,7 +5,7 @@ package com.example.xw.bean;
  */
 
 // 今日天气类，包含某个城市当天的天气信息
-public class TodayWeather {
+public class TodayWeather implements Cloneable{
     private String city;
     private String updatetime;
     private String wendu;
@@ -115,6 +115,17 @@ public class TodayWeather {
         return type;
     }
 
+
+    @Override
+    public Object clone() {
+        TodayWeather cloneObj = null;
+        try{
+            cloneObj = (TodayWeather) super.clone();
+        }catch(CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return cloneObj;
+    }
 
     @Override
     public String toString() {

@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/w1_date1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
+        <ImageView
+            android:id="@+id/w1_img1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/biz_plugin_weather_qing" />
+        <TextView
+            android:id="@+id/w1_temperature1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:singleLine="true"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+        <!-- 天气状况 -->
+        <TextView
+            android:id="@+id/w1_climate1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+        <!-- 风力信息 -->
+        <TextView
+            android:id="@+id/w1_wind1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/w1_date2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
+        <ImageView
+            android:id="@+id/w1_img2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/biz_plugin_weather_qing" />
+        <TextView
+            android:id="@+id/w1_temperature2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:singleLine="true"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+        <!-- 天气状况 -->
+        <TextView
+            android:id="@+id/w1_climate2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+        <!-- 风力信息 -->
+        <TextView
+            android:id="@+id/w1_wind2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="1"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/w1_date3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
+        <ImageView
+            android:id="@+id/w1_img3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_alignParentLeft="true"
+            android:src="@drawable/biz_plugin_weather_qing" />
+        <TextView
+            android:id="@+id/w1_temperature3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:singleLine="true"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+        <!-- 天气状况 -->
+        <TextView
+            android:id="@+id/w1_climate3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+        <!-- 风力信息 -->
+        <TextView
+            android:id="@+id/w1_wind3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="N/A"
+            android:textColor="@android:color/white"
+            android:textSize="20.0sp" />
+    </LinearLayout>
+
+</LinearLayout>
