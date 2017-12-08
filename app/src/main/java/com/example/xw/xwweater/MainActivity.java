@@ -1,10 +1,16 @@
 package com.example.xw.xwweater;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.Message;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
@@ -16,6 +22,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.xw.bean.TodayWeather;
+import com.example.xw.service.MyService;
 import com.example.xw.util.NetUtil;
 
 import org.xmlpull.v1.XmlPullParser;
@@ -26,6 +33,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -38,7 +46,10 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
 
     private static final int UPDATE_TODAY_WEATHER = 1;
 
-    ArrayList<TodayWeather> m_weathersList;
+    private ArrayList<TodayWeather> m_weathersList;
+
+    private MyBroadcast myBroadcast;// 广播，用来接收service的消息
+    private Intent serviceIntent;
 
     // 布局文件中的控件
     private ImageView mUpdateBtn;
@@ -127,6 +138,49 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         initDots();
     }
 
+    public class MyBroadcast extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ArrayList<TodayWeather> weathers = (ArrayList<TodayWeather>)intent.getSerializableExtra("wList");
+            System.out.println(weathers.get(0));
+            updateTodayWeather(weathers);
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        myBroadcast = new MyBroadcast();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("SERVICE");
+
+        registerReceiver(myBroadcast, filter);
+        serviceIntent = new Intent(this, MyService.class);
+        // 开启服务
+        startMyService();
+
+        super.onStart();
+    }
+
+    void startMyService(){
+        // 获取以往数据
+        SharedPreferences sharedPreferences = getSharedPreferences("XW", MODE_PRIVATE);
+        String cityCode = sharedPreferences.getString("main_city_code", "101010100");
+        String address;
+        if( lastCityCode != null ){
+            address = "http://wthrcdn.etouch.cn/WeatherApi?citykey=" + lastCityCode;
+        }else{
+            address = "http://wthrcdn.etouch.cn/WeatherApi?citykey=" + cityCode;
+        }
+
+        Log.d("myWeather",address);
+
+        serviceIntent.putExtra("url", address);
+        startService(serviceIntent);
+
+    }
+
     void initViews(){
         LayoutInflater inflater = LayoutInflater.from(this);
         views = new ArrayList<View>();
@@ -136,9 +190,6 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         vp = (ViewPager)findViewById(R.id.nextWth_viewpager);
         vp.setAdapter(viewPagerAdapter);
         vp.setOnPageChangeListener(this);
-
-        //private TextView w1_date1, w1_temperature1, w1_climate1, w1_wind1;
-        //private ImageView w1_img1;
 
         // 初始化所有控件
         w1_date1 = (TextView)views.get(0).findViewById(R.id.w1_date1);
@@ -575,8 +626,12 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == 1 && resultCode == RESULT_OK) {
             String newCityCode = data.getStringExtra("cityCode");
-            if(newCityCode != null)
+            if(newCityCode != null) {
                 lastCityCode = newCityCode;// 记录最近查询的城市代号
+                // 重新启动服务
+                stopService(serviceIntent);
+                startMyService();
+            }
             Log.d("myWeather", "选择的城市代码为"+newCityCode);
 
             if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
@@ -669,5 +724,11 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
     @Override
     public void onPageScrollStateChanged(int state) {
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopService(serviceIntent);
     }
 }

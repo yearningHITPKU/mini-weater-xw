@@ -26,6 +26,8 @@
         </activity>
         <activity android:name=".SelectCity">
         </activity>
+        <service android:name="com.example.xw.service.MyService">
+        </service>
     </application>
 
 </manifest>

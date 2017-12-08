@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.example.xw.bean.City;
 import com.example.xw.db.CityDB;
+import com.example.xw.service.MyService;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -61,9 +62,9 @@ public class MyApplication extends Application{
             i++;
             String cityName = city.getCity();
             String cityCode = city.getNumber();
-            Log.d(TAG,cityCode+":"+cityName);
+            //Log.d(TAG,cityCode+":"+cityName);
         }
-        Log.d(TAG,"i="+i);
+        //Log.d(TAG,"i="+i);
         return true;
     }
 

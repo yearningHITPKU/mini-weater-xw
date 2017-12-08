@@ -1,11 +1,13 @@
 package com.example.xw.bean;
 
+import java.io.Serializable;
+
 /**
  * Created by xw on 2017/10/12.
  */
 
 // 今日天气类，包含某个城市当天的天气信息
-public class TodayWeather implements Cloneable{
+public class TodayWeather implements Cloneable, Serializable{
     private String city;
     private String updatetime;
     private String wendu;
