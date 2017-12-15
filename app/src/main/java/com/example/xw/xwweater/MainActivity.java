@@ -1,5 +1,6 @@
 package com.example.xw.xwweater;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -8,11 +9,17 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.mtp.MtpObjectInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.os.Parcel;
+import android.os.RemoteException;
 import android.support.v4.view.ViewPager;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,22 +28,33 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.example.xw.app.MyApplication;
+import com.example.xw.bean.City;
 import com.example.xw.bean.TodayWeather;
 import com.example.xw.service.MyService;
 import com.example.xw.util.NetUtil;
+import com.umeng.analytics.MobclickAgent;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.Permission;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -46,10 +64,15 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
 
     private static final int UPDATE_TODAY_WEATHER = 1;
 
-    private ArrayList<TodayWeather> m_weathersList;
+    private ArrayList<TodayWeather> mWeathersList;
+
+    private LocationClient mLocationClient;
+    private BDLocationListener mBDLocationListener;
 
     private MyBroadcast myBroadcast;// 广播，用来接收service的消息
     private Intent serviceIntent;
+    private MyService myService;
+    private MyService.MyBinder myBinder;
 
     // 布局文件中的控件
     private ImageView mUpdateBtn;
@@ -106,6 +129,43 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
     };
 
     @Override
+    protected void onStart() {
+
+        mBDLocationListener = new MyLocationListener();
+        mLocationClient = ((MyApplication)getApplication()).mLocationClient;
+        mLocationClient.registerLocationListener(mBDLocationListener);
+        LocationClientOption option = new LocationClientOption();
+        option.setCoorType("bd09ll");   // 设置坐标类型
+        option.setIsNeedAddress(true);  //设置是否需要地址信息，默认不需要
+        //option.setScanSpan(1000);     //多久定位一次
+        mLocationClient.setLocOption(option);
+        mLocationClient.start();
+
+        myBroadcast = new MyBroadcast();
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction("SERVICE");
+
+        registerReceiver(myBroadcast, filter);
+        serviceIntent = new Intent(this, MyService.class);
+
+        // 获取以往数据
+        SharedPreferences sharedPreferences = getSharedPreferences("XW", MODE_PRIVATE);
+        String cityCode = sharedPreferences.getString("main_city_code", "101010100");
+        String address;
+        if( lastCityCode != null ){
+            address = "http://wthrcdn.etouch.cn/WeatherApi?citykey=" + lastCityCode;
+        }else{
+            address = "http://wthrcdn.etouch.cn/WeatherApi?citykey=" + cityCode;
+        }
+        serviceIntent.putExtra("url", address);
+
+        bindService(serviceIntent, conn, Context.BIND_AUTO_CREATE);
+
+        super.onStart();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -126,7 +186,9 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         mCitySelect = (ImageView) findViewById(R.id.title_city_manager);
         mCitySelect.setOnClickListener(this);//添加点击事件
 
-        //weathersList = new ArrayList<TodayWeather>();
+        mWeathersList = new ArrayList<TodayWeather>();
+
+        //getDeviceInfo(getApplicationContext());
 
         // 初始化今日天气界面
         initView();
@@ -138,47 +200,38 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         initDots();
     }
 
+    public class MyLocationListener implements BDLocationListener {
+        @Override
+        public void onReceiveLocation(BDLocation location) {
+            //打印出当前的城市名
+            String cityName = location.getCity().substring(0,location.getCity().length()-1 );
+            Toast.makeText(MainActivity.this, cityName, Toast.LENGTH_SHORT).show();
+
+            // 根据城市名称找到cityCode,更新天气信息
+            List<City> cityList = ((MyApplication)getApplication()).getCityList();
+            for(City tmp: cityList){
+                if(tmp.getCity().equals(cityName)){
+                    lastCityCode = tmp.getNumber();
+                    queryWeatherCode(lastCityCode);
+                }
+            }
+
+            //location.getLongitude();    获取当前位置经度
+            //location.getLatitude();     获取当前位置纬度
+        }
+    }
+
     public class MyBroadcast extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
             ArrayList<TodayWeather> weathers = (ArrayList<TodayWeather>)intent.getSerializableExtra("wList");
-            System.out.println(weathers.get(0));
-            updateTodayWeather(weathers);
+
+            if(weathers != null){
+                //System.out.println(weathers.get(0));
+                updateTodayWeather(weathers);
+            }
         }
-    }
-
-    @Override
-    protected void onStart() {
-        myBroadcast = new MyBroadcast();
-
-        IntentFilter filter = new IntentFilter();
-        filter.addAction("SERVICE");
-
-        registerReceiver(myBroadcast, filter);
-        serviceIntent = new Intent(this, MyService.class);
-        // 开启服务
-        startMyService();
-
-        super.onStart();
-    }
-
-    void startMyService(){
-        // 获取以往数据
-        SharedPreferences sharedPreferences = getSharedPreferences("XW", MODE_PRIVATE);
-        String cityCode = sharedPreferences.getString("main_city_code", "101010100");
-        String address;
-        if( lastCityCode != null ){
-            address = "http://wthrcdn.etouch.cn/WeatherApi?citykey=" + lastCityCode;
-        }else{
-            address = "http://wthrcdn.etouch.cn/WeatherApi?citykey=" + cityCode;
-        }
-
-        Log.d("myWeather",address);
-
-        serviceIntent.putExtra("url", address);
-        startService(serviceIntent);
-
     }
 
     void initViews(){
@@ -296,7 +349,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
             public void run() {
                 HttpURLConnection con = null;
                 TodayWeather todayWeather = null;
-                ArrayList<TodayWeather> weathersList = new ArrayList<TodayWeather>();
+                //ArrayList<TodayWeather> weathersList = new ArrayList<TodayWeather>();
                 try{
                     URL url = new URL(address);
                     con = (HttpURLConnection) url.openConnection();
@@ -313,17 +366,17 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
                     }
                     String responseStr = response.toString();
                     Log.d("myWeather", responseStr);
-                    weathersList = parseXML(responseStr);// 解析获得的xml格式的网页数据
+                    mWeathersList = parseXML(responseStr);// 解析获得的xml格式的网页数据
                     //if(todayWeather != null){
-                    if(!weathersList.isEmpty()){
+                    if(!mWeathersList.isEmpty()){
                         //Log.d("myWeather",todayWeather.toString());
-                        Log.d("myWeather",weathersList.get(0).toString());
+                        Log.d("myWeather",mWeathersList.get(0).toString());
 
                         // 将解析后得到的天气信息对象传回UI线程处理
                         Message msg = new Message();
                         msg.what = UPDATE_TODAY_WEATHER;
                         //msg.obj=todayWeather;
-                        msg.obj = weathersList;
+                        msg.obj = mWeathersList;
                         mHandler.sendMessage(msg);
                     }
                 }catch (Exception e){
@@ -381,7 +434,6 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         editor.commit();//提交操作，很关键
 
         updateWeathers(weathersList);
-
     }
 
     void updateWeathers(ArrayList<TodayWeather> weathersList){
@@ -628,9 +680,15 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
             String newCityCode = data.getStringExtra("cityCode");
             if(newCityCode != null) {
                 lastCityCode = newCityCode;// 记录最近查询的城市代号
-                // 重新启动服务
-                stopService(serviceIntent);
-                startMyService();
+
+                // 修改Service中的网址
+                Parcel in = Parcel.obtain();
+                in.writeString("http://wthrcdn.etouch.cn/WeatherApi?citykey=" + lastCityCode);
+                try {
+                    myBinder.transact(0, in, null, IBinder.FLAG_ONEWAY );
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
             Log.d("myWeather", "选择的城市代码为"+newCityCode);
 
@@ -728,7 +786,121 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        mLocationClient.unRegisterLocationListener(mBDLocationListener);//取消注册的位置监听，以免内存泄露
+        mLocationClient.stop();// 退出时销毁定位
         stopService(serviceIntent);
+        super.onDestroy();
     }
+
+    ServiceConnection conn = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            myBinder = (MyService.MyBinder) service;
+            myService = ((MyService.MyBinder) service).getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            myService.stopSelf();
+            unregisterReceiver(myBroadcast);
+        }
+    };
+
+    @Override
+    protected void onPause() {
+        myService.stopSelf();
+        unregisterReceiver(myBroadcast);
+        super.onPause();
+
+        // 友盟统计Activity访问次数
+        MobclickAgent.onPause(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // 友盟统计Activity访问次数
+        MobclickAgent.onResume(this);
+    }
+
+/*
+    public static boolean checkPermission(Context context, String permission) {
+        boolean result = false;
+        if (Build.VERSION.SDK_INT >= 23) {
+            try {
+                Class<?> clazz = Class.forName("android.content.Context");
+                Method method = clazz.getMethod("checkSelfPermission", String.class);
+                int rest = (Integer) method.invoke(context, permission);
+                if (rest == PackageManager.PERMISSION_GRANTED) {
+                    result = true;
+                } else {
+                    result = false;
+                }
+            } catch (Exception e) {
+                result = false;
+            }
+        } else {
+            PackageManager pm = context.getPackageManager();
+            if (pm.checkPermission(permission, context.getPackageName()) == PackageManager.PERMISSION_GRANTED) {
+                result = true;
+            }
+        }
+        return result;
+    }
+    public static String getDeviceInfo(Context context) {
+        try {
+            org.json.JSONObject json = new org.json.JSONObject();
+            android.telephony.TelephonyManager tm = (android.telephony.TelephonyManager) context
+                    .getSystemService(Context.TELEPHONY_SERVICE);
+            String device_id = null;
+            if (checkPermission(context, Manifest.permission.READ_PHONE_STATE)) {
+                device_id = tm.getDeviceId();
+            }
+            String mac = null;
+            FileReader fstream = null;
+            try {
+                fstream = new FileReader("/sys/class/net/wlan0/address");
+            } catch (FileNotFoundException e) {
+                fstream = new FileReader("/sys/class/net/eth0/address");
+            }
+            BufferedReader in = null;
+            if (fstream != null) {
+                try {
+                    in = new BufferedReader(fstream, 1024);
+                    mac = in.readLine();
+                } catch (IOException e) {
+                } finally {
+                    if (fstream != null) {
+                        try {
+                            fstream.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    if (in != null) {
+                        try {
+                            in.close();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            json.put("mac", mac);
+            if (TextUtils.isEmpty(device_id)) {
+                device_id = mac;
+            }
+            if (TextUtils.isEmpty(device_id)) {
+                device_id = android.provider.Settings.Secure.getString(context.getContentResolver(),
+                        android.provider.Settings.Secure.ANDROID_ID);
+            }
+            json.put("device_id", device_id);
+            return json.toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }*/
+
 }

@@ -4,9 +4,11 @@ import android.app.Application;
 import android.os.Environment;
 import android.util.Log;
 
+import com.baidu.location.LocationClient;
 import com.example.xw.bean.City;
 import com.example.xw.db.CityDB;
-import com.example.xw.service.MyService;
+import com.umeng.message.IUmengRegisterCallback;
+import com.umeng.message.PushAgent;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,7 +27,9 @@ public class MyApplication extends Application{
 
     private static MyApplication myApplication;//单例入口
     private CityDB mCityDB;//全局数据库
-    private List<City> mCityList;//所有城市列表
+    public List<City> mCityList;//所有城市列表
+
+    public LocationClient mLocationClient;//定位功能
 
     @Override
     public void onCreate(){
@@ -34,6 +38,24 @@ public class MyApplication extends Application{
         myApplication = this;
         mCityDB = openCityDB();// 初始化APP的数据库
         initCityList();// 初始化城市列表
+        mLocationClient = new LocationClient(this.getApplicationContext());
+
+        PushAgent mPushAgent = PushAgent.getInstance(this);
+        //注册推送服务，每次调用register方法都会回调该接口
+        mPushAgent.register(new IUmengRegisterCallback() {
+
+            @Override
+            public void onSuccess(String deviceToken) {
+                //注册成功会返回device token
+                Log.d("mytoken", deviceToken );
+            }
+
+            @Override
+            public void onFailure(String s, String s1) {
+
+            }
+        });
+
     }
 
     // 中能通过此方法获取该单例类的对象

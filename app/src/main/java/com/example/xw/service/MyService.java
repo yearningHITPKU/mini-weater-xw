@@ -3,8 +3,9 @@ package com.example.xw.service;
 import android.app.Service;
 import android.content.Intent;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Parcel;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
@@ -47,6 +48,7 @@ public class MyService extends Service{
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        Log.d(TAG, "onBind");
         // 获取url
         mURL = intent.getStringExtra("url");
         return new MyBinder();
@@ -56,8 +58,15 @@ public class MyService extends Service{
         public MyService getService(){
             return MyService.this;
         }
-    }
 
+        @Override
+        protected boolean onTransact(int code, Parcel data, Parcel reply, int flags) throws RemoteException {
+
+            mURL = data.readString();
+
+            return super.onTransact(code, data, reply, flags);
+        }
+    }
 
     @Override
     public void onCreate() {
@@ -65,7 +74,7 @@ public class MyService extends Service{
         Log.i(TAG,"Service onCreate");
 
         // 开启时钟
-        mTimer.schedule(task, 1, 5000);
+        mTimer.schedule(task, 100, 3600000);
     }
 
     // 每隔一定时间，从网上获取天气数据，并返回给MainActivity
@@ -109,7 +118,7 @@ public class MyService extends Service{
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i(TAG,"Service onStartCommand");
+        Log.i( TAG, "Service onStartCommand");
 
         // 获取url
         mURL = intent.getStringExtra("url");
@@ -119,6 +128,7 @@ public class MyService extends Service{
 
     @Override
     public void onDestroy() {
+        Log.d(TAG, "onDestory");
         mTimer.cancel();
         super.onDestroy();
     }
