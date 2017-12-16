@@ -68,6 +68,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
 
     private LocationClient mLocationClient;
     private BDLocationListener mBDLocationListener;
+    private ImageView mLocationButton;
 
     private MyBroadcast myBroadcast;// 广播，用来接收service的消息
     private Intent serviceIntent;
@@ -137,7 +138,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         LocationClientOption option = new LocationClientOption();
         option.setCoorType("bd09ll");   // 设置坐标类型
         option.setIsNeedAddress(true);  //设置是否需要地址信息，默认不需要
-        //option.setScanSpan(1000);     //多久定位一次
+        //ption.setScanSpan(100000);     //多久定位一次
         mLocationClient.setLocOption(option);
         mLocationClient.start();
 
@@ -170,10 +171,6 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mUpdateBtn = (ImageView)findViewById(R.id.title_update_btn);
-        mUpdateBtn.setOnClickListener(this);
-        mProgressAnim = (ProgressBar)findViewById(R.id.title_update_progress);
-
         // 测试网络是否联通
         if (NetUtil.getNetworkState(this) != NetUtil.NETWORN_NONE) {
             Log.d("myWeather", "网络OK");
@@ -183,8 +180,14 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
             Toast.makeText(MainActivity.this,"网络挂了！", Toast.LENGTH_LONG).show();
         }
 
+        mUpdateBtn = (ImageView)findViewById(R.id.title_update_btn);
         mCitySelect = (ImageView) findViewById(R.id.title_city_manager);
+        mProgressAnim = (ProgressBar)findViewById(R.id.title_update_progress);
+        mLocationButton = (ImageView)findViewById(R.id.title_location);
+
+        mUpdateBtn.setOnClickListener(this);
         mCitySelect.setOnClickListener(this);//添加点击事件
+        mLocationButton.setOnClickListener(this);
 
         mWeathersList = new ArrayList<TodayWeather>();
 
@@ -205,7 +208,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         public void onReceiveLocation(BDLocation location) {
             //打印出当前的城市名
             String cityName = location.getCity().substring(0,location.getCity().length()-1 );
-            Toast.makeText(MainActivity.this, cityName, Toast.LENGTH_SHORT).show();
+            Toast.makeText(MainActivity.this, "当前城市：" + cityName, Toast.LENGTH_SHORT).show();
 
             // 根据城市名称找到cityCode,更新天气信息
             List<City> cityList = ((MyApplication)getApplication()).getCityList();
@@ -215,7 +218,6 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
                     queryWeatherCode(lastCityCode);
                 }
             }
-
             //location.getLongitude();    获取当前位置经度
             //location.getLatitude();     获取当前位置纬度
         }
@@ -226,9 +228,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         @Override
         public void onReceive(Context context, Intent intent) {
             ArrayList<TodayWeather> weathers = (ArrayList<TodayWeather>)intent.getSerializableExtra("wList");
-
             if(weathers != null){
-                //System.out.println(weathers.get(0));
                 updateTodayWeather(weathers);
             }
         }
@@ -650,7 +650,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
     public void onClick(View view){
 
         // 如果点击的是选择城市按钮，则跳转到城市选择界面
-        if(view.getId()==R.id.title_city_manager){
+        if(view.getId() == R.id.title_city_manager){
             Intent i = new Intent(this, SelectCity.class);
             startActivityForResult(i,1);// 等待跳转到的界面返回结果
         }
@@ -671,6 +671,10 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
                 Log.d("myWeather", "网络挂了");
                 Toast.makeText(MainActivity.this,"网络挂了！", Toast.LENGTH_LONG).show();
             }
+        }
+
+        if(view.getId() == R.id.title_location){
+            mLocationClient.requestLocation();
         }
     }
 
@@ -786,6 +790,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
 
     @Override
     protected void onDestroy() {
+        Log.d("onDestroy", "call onDestroy");
         mLocationClient.unRegisterLocationListener(mBDLocationListener);//取消注册的位置监听，以免内存泄露
         mLocationClient.stop();// 退出时销毁定位
         stopService(serviceIntent);
@@ -808,6 +813,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
 
     @Override
     protected void onPause() {
+        Log.d("OnPause", "call onPause");
         myService.stopSelf();
         unregisterReceiver(myBroadcast);
         super.onPause();
@@ -818,14 +824,15 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
 
     @Override
     protected void onResume() {
+        Log.d("onResume", "call onResume");
         super.onResume();
 
         // 友盟统计Activity访问次数
         MobclickAgent.onResume(this);
     }
 
-/*
-    public static boolean checkPermission(Context context, String permission) {
+
+    /*public static boolean checkPermission(Context context, String permission) {
         boolean result = false;
         if (Build.VERSION.SDK_INT >= 23) {
             try {

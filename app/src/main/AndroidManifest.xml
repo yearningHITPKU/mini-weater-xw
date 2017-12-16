@@ -37,20 +37,23 @@
             android:name="com.baidu.lbsapi.API_KEY"
             android:value="tMK74pgKmaEscG1eZWku16RyXUeFSloX" >
         </meta-data>
+
         <meta-data
             android:name="UMENG_APPKEY"
-            android:value="5a32632af43e4840c90002a6">
+            android:value="5a338f34a40fa350b1000033">
         </meta-data>
         <meta-data
             android:name="UMENG_MESSAGE_SECRET"
-            android:value="a235c43637258a1fb782d96652c8bd46">
+            android:value="951b64d1ee1d8e8d6410f5a9e2cc45e3">
         </meta-data>
-        <meta-data android:value="miniweatherByPKUXW" android:name="UMENG_CHANNEL"/>
+        <meta-data android:value="miniweatherByPKUXW" android:name="UMENG_CHANNEL">
+        </meta-data>
 
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name">
         </activity>
+
         <activity android:name=".Guide"
             android:exported="true">
             <intent-filter>
@@ -58,12 +61,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SelectCity">
-        </activity>
-        <service android:name="com.example.xw.service.MyService">
-        </service>
-        <service android:name="com.baidu.location.f" android:enabled="true" android:process=":remote">
-        </service>
+
+        <activity android:name=".SelectCity"></activity>
+
+        <service android:name="com.example.xw.service.MyService"></service>
+
+        <service android:name="com.baidu.location.f" android:enabled="true" android:process=":remote"></service>
     </application>
 
 </manifest>
