@@ -150,7 +150,7 @@ public class MainActivity extends Activity implements View.OnClickListener,ViewP
         registerReceiver(myBroadcast, filter);
         serviceIntent = new Intent(this, MyService.class);
 
-        // 获取以往数据
+        // 获取最近一次的城市代码数据
         SharedPreferences sharedPreferences = getSharedPreferences("XW", MODE_PRIVATE);
         String cityCode = sharedPreferences.getString("main_city_code", "101010100");
         String address;

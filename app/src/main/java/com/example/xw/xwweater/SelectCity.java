@@ -55,7 +55,7 @@ public class SelectCity extends Activity implements View.OnClickListener{
             data[i] = city.getCity();
             data[i] += "  ";
             data[i] += city.getNumber();
-            System.out.println(data[i]);
+            //System.out.println(data[i]);
             i++;
         }
         // 设置适配器：关联数据与布局

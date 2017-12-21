@@ -77,6 +77,24 @@ public class MyService extends Service{
         mTimer.schedule(task, 100, 3600000);
     }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.i( TAG, "Service onStartCommand");
+
+        // 获取url
+        mURL = intent.getStringExtra("url");
+
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG, "onDestory");
+        mTimer.cancel();
+        super.onDestroy();
+    }
+
+
     // 每隔一定时间，从网上获取天气数据，并返回给MainActivity
     TimerTask task = new TimerTask() {
         @Override
@@ -113,25 +131,17 @@ public class MyService extends Service{
             intent.setAction("SERVICE");
             intent.putExtra("wList",mWeatherList);
             sendBroadcast(intent);
+
+            /*Intent updateWidget = new Intent();
+            //updateWidget.setAction("android.appwidget.action.APPWIDGET_UPDATE");
+            updateWidget.setAction("com.xw.miniweatherwidget.MY_WIDGET_UPDATE");
+            updateWidget.putExtra("city", mWeatherList.get(1).getCity().toString());
+            updateWidget.putExtra("tempture", mWeatherList.get(1).getWendu().toString());
+            updateWidget.putExtra("type", mWeatherList.get(1).getType().toString());
+            sendBroadcast(updateWidget);
+            Log.d("sssssssssssssssss", updateWidget.getAction().toString());*/
         }
     };
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.i( TAG, "Service onStartCommand");
-
-        // 获取url
-        mURL = intent.getStringExtra("url");
-
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    @Override
-    public void onDestroy() {
-        Log.d(TAG, "onDestory");
-        mTimer.cancel();
-        super.onDestroy();
-    }
 
     // 解析从网站上获取到的xml页面信息
     private ArrayList<TodayWeather> parseXML(String xmldata){
